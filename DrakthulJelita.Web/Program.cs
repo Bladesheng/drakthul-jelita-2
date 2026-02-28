@@ -1,7 +1,16 @@
+using DrakthulJelita.Web.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+var connectionString = builder.Configuration.GetConnectionString("DbPath") ??
+                       throw new InvalidOperationException("`DbPath` connection string not found");
+
+builder.Services
+    .AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(connectionString)
+    )
+    .AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -21,8 +30,9 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+        "default",
+        "{controller=Screenshots}/{action=Index}/{id?}"
+    )
     .WithStaticAssets();
 
 
