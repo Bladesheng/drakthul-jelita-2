@@ -1,3 +1,7 @@
 ﻿@using DrakthulJelita.Web
+@using DrakthulJelita.Web.Configuration
 @using DrakthulJelita.Web.Models
+@using Microsoft.Extensions.Options
+
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject IOptions<CdnOptions> Cdn

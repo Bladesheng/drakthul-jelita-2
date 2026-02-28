@@ -1,28 +1,55 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DrakthulJelita.Web.Data;
 using DrakthulJelita.Web.Models;
+using DrakthulJelita.Web.ViewModels;
 
 namespace DrakthulJelita.Web.Controllers;
 
-public class ScreenshotsController : Controller
+public class ScreenshotsController(AppDbContext context) : Controller
 {
-    private readonly AppDbContext _context;
-
-    public ScreenshotsController(AppDbContext context)
-    {
-        _context = context;
-    }
-
-    // GET: Screenshots
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Screenshots.ToListAsync());
+        var screenshots = await context.Screenshots
+            .AsNoTracking()
+            .Include(s => s.WowClass)
+            .OrderBy(s => s.WowName)
+            .Select(s => new ScreenshotIndexVm.ScreenshotVm
+            {
+                Id = s.Id,
+                Path = s.Path,
+                WowName = s.WowName,
+                WowClassId = s.WowClassId,
+                Width = s.Width,
+                Height = s.Height,
+                WowClassName = s.WowClass.Name,
+                WowClassColor = s.WowClass.Color
+            })
+            .ToListAsync();
+
+        var screenshotsByWowClassId = screenshots
+            .GroupBy(s => s.WowClassId)
+            .ToDictionary(
+                g => g.Key,
+                IReadOnlyList<ScreenshotIndexVm.ScreenshotVm> (g) => g.ToList()
+            );
+
+        var wowClasses = await context.WowClasses
+            .AsNoTracking()
+            .Select(c => new ScreenshotIndexVm.WowClassVm
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Color = c.Color
+            })
+            .ToListAsync();
+
+
+        return View(new ScreenshotIndexVm
+        {
+            Screenshots = screenshotsByWowClassId,
+            WowClasses = wowClasses
+        });
     }
 
     // GET: Screenshots/Details/5
@@ -30,7 +57,7 @@ public class ScreenshotsController : Controller
     {
         if (id == null) return NotFound();
 
-        var screenshot = await _context.Screenshots
+        var screenshot = await context.Screenshots
             .FirstOrDefaultAsync(m => m.Id == id);
         if (screenshot == null) return NotFound();
 
@@ -54,8 +81,8 @@ public class ScreenshotsController : Controller
     {
         if (ModelState.IsValid)
         {
-            _context.Add(screenshot);
-            await _context.SaveChangesAsync();
+            context.Add(screenshot);
+            await context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -67,7 +94,7 @@ public class ScreenshotsController : Controller
     {
         if (id == null) return NotFound();
 
-        var screenshot = await _context.Screenshots.FindAsync(id);
+        var screenshot = await context.Screenshots.FindAsync(id);
         if (screenshot == null) return NotFound();
         return View(screenshot);
     }
@@ -87,8 +114,8 @@ public class ScreenshotsController : Controller
         {
             try
             {
-                _context.Update(screenshot);
-                await _context.SaveChangesAsync();
+                context.Update(screenshot);
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -109,7 +136,7 @@ public class ScreenshotsController : Controller
     {
         if (id == null) return NotFound();
 
-        var screenshot = await _context.Screenshots
+        var screenshot = await context.Screenshots
             .FirstOrDefaultAsync(m => m.Id == id);
         if (screenshot == null) return NotFound();
 
@@ -122,15 +149,15 @@ public class ScreenshotsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var screenshot = await _context.Screenshots.FindAsync(id);
-        if (screenshot != null) _context.Screenshots.Remove(screenshot);
+        var screenshot = await context.Screenshots.FindAsync(id);
+        if (screenshot != null) context.Screenshots.Remove(screenshot);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
     private bool ScreenshotExists(int id)
     {
-        return _context.Screenshots.Any(e => e.Id == id);
+        return context.Screenshots.Any(e => e.Id == id);
     }
 }

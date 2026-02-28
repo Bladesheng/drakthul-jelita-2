@@ -1,3 +1,4 @@
+using DrakthulJelita.Web.Configuration;
 using DrakthulJelita.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,8 +10,16 @@ var connectionString = builder.Configuration.GetConnectionString("DbPath") ??
 builder.Services
     .AddDbContext<AppDbContext>(options =>
         options.UseSqlite(connectionString)
-    )
+    );
+
+builder.Services
     .AddControllersWithViews();
+
+builder.Services
+    .AddOptions<CdnOptions>()
+    .Bind(builder.Configuration.GetSection(CdnOptions.SectionName))
+    .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "Cdn:BaseUrl must be set")
+    .ValidateOnStart();
 
 var app = builder.Build();
 

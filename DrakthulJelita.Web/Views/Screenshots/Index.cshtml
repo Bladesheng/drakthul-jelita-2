@@ -1,78 +1,68 @@
-@model IEnumerable<DrakthulJelita.Web.Models.Screenshot>
+@model DrakthulJelita.Web.ViewModels.ScreenshotIndexVm
 
 @{
     ViewData["Title"] = "Index";
+
+    var cdnBaseUrl = Cdn.Value.BaseUrl.TrimEnd('/');
 }
 
-<h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Path)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.MimeType)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Size)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.WowName)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.WowClassId)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Width)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Height)
-        </th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Path)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MimeType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Size)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.WowName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.WowClassId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Width)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Height)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="flex flex-col gap-6">
+    <div class="flex justify-between items-center">
+        <label class="input">
+            <span class="icon-[heroicons--magnifying-glass]"></span>
+            <input type="search" id="search" placeholder="Search for names..."/>
+        </label>
+
+        <div>
+        <span>
+            @Model.Screenshots.Values.Sum(screenshots => screenshots.Count) screenshots
+        </span>
+
+            (
+            <span class="inline-flex gap-2">
+            @foreach (var (_, classScreenshots) in Model.Screenshots.OrderByDescending(e => e.Value.Count))
+                {
+                    var classColor = classScreenshots.FirstOrDefault()?.WowClassColor;
+
+                    <span style="color: @classColor">
+                    @classScreenshots.Count
+                </span>
+                }
+            </span>
+            )
+        </div>
+    </div>
+
+    <div class="grid gap-1" style="grid-template-columns: repeat(13, minmax(135px, 1fr))">
+        @foreach (var wowClass in Model.WowClasses)
+        {
+            <div>
+                <div
+                    class="mb-4 text-center text-lg font-bold capitalize"
+                    style="color: @wowClass.Color"
+                >
+                    @wowClass.Name
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    @foreach (var screenshot in Model.Screenshots[wowClass.Id])
+                    {
+                        <img
+                            loading="lazy"
+                            src="@cdnBaseUrl/@screenshot.Path"
+                            width="@screenshot.Width"
+                            height="@screenshot.Height"
+                            alt="@screenshot.WowName"
+                            class="screenshot w-full"
+                            data-wow-name="@screenshot.WowName"/>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/screenshotsSearch.js" asp-append-version="true"></script>
+}
