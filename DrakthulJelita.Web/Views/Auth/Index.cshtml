@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<main class="flex grow items-center justify-center">
+    <form method="POST" asp-controller="Auth" asp-action="Login" class="flex flex-col gap-4">
+        @Html.AntiForgeryToken()
+
+        <label for="password" class="input">
+                <span class="label">
+                    <span class="icon-[heroicons--lock-closed]"></span>
+                </span>
+
+            <input type="password" name="password" id="password" required/>
+        </label>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</main>
+

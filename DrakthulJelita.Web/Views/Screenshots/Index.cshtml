@@ -48,14 +48,37 @@
                 <div class="flex flex-col gap-1">
                     @foreach (var screenshot in Model.Screenshots[wowClass.Id])
                     {
-                        <img
-                            loading="lazy"
-                            src="@cdnBaseUrl/@screenshot.Path"
-                            width="@screenshot.Width"
-                            height="@screenshot.Height"
-                            alt="@screenshot.WowName"
-                            class="screenshot w-full"
-                            data-wow-name="@screenshot.WowName"/>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a
+                                asp-controller="Screenshots"
+                                asp-action="Edit"
+                                asp-route-id="@screenshot.Id"
+                                class="screenshot"
+                                data-wow-name="@screenshot.WowName"
+                            >
+                                <img
+                                    loading="lazy"
+                                    src="@cdnBaseUrl/@screenshot.Path"
+                                    width="@screenshot.Width"
+                                    height="@screenshot.Height"
+                                    alt="@screenshot.WowName"
+                                    class="w-full"
+                                />
+                            </a>
+                        }
+                        else
+                        {
+                            <img
+                                loading="lazy"
+                                src="@cdnBaseUrl/@screenshot.Path"
+                                width="@screenshot.Width"
+                                height="@screenshot.Height"
+                                alt="@screenshot.WowName"
+                                class="screenshot w-full"
+                                data-wow-name="@screenshot.WowName"
+                            />
+                        }
                     }
                 </div>
             </div>

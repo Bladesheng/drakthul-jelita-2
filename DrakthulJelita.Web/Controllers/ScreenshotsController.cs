@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using DrakthulJelita.Web.Data;
 using DrakthulJelita.Web.Models;
 using DrakthulJelita.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DrakthulJelita.Web.Controllers;
 
@@ -75,6 +76,7 @@ public class ScreenshotsController(AppDbContext context) : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create(
         [Bind("Id,Path,MimeType,Size,WowName,CreatedAt,WowClassId,Width,Height")]
         Screenshot screenshot)
