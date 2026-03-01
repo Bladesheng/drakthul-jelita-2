@@ -1,54 +1,62 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>@ViewData["Title"] - DrakthulJelita.Web</title>
+
+    @{
+        var pageTitle = ViewData["Title"]?.ToString();
+        var fullTitle = string.IsNullOrWhiteSpace(pageTitle)
+            ? "Drak'thul (J)elita"
+            : $"{pageTitle} | Drak'thul (J)elita";
+    }
+    <title>@fullTitle</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet"
+    />
+
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/DrakthulJelita.Web.styles.css" asp-append-version="true"/>
 </head>
 
-<body>
-<header>
-    <nav>
-        <div>
-            <a asp-area="" asp-controller="Home" asp-action="Index">DrakthulJelita.Web</a>
 
-            <div>
-                <ul>
-                    <li>
-                        <a asp-area="" asp-controller="Home" asp-action="Index">
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-area="" asp-controller="Home" asp-action="Privacy">
-                            Privacy
-                        </a>
-                    </li>
-                </ul>
+<body class="flex min-h-screen flex-col">
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <header>
+        <nav class="navbar shadow">
+            <div class="flex grow">
+                <img src="~/favicon.svg" alt="favicon" class="h-10 pe-2"/>
+                <a class="btn btn-ghost text-xl" asp-controller="Screenshots" asp-action="Index">Jelita</a>
+                <a class="btn btn-ghost text-xl" asp-controller="Screenshots" asp-action="Create">Upload</a>
             </div>
-        </div>
-    </nav>
-</header>
 
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
-</div>
+            <form method="POST" asp-controller="Auth" asp-action="Logout">
+                @Html.AntiForgeryToken()
 
-<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2026 - DrakthulJelita.Web -
-        <a asp-area="" asp-controller="Home" asp-action="Privacy">
-            Privacy
-        </a>
-    </div>
+                <button type="submit" class="btn btn-square btn-ghost">
+                    <span class="icon-[heroicons--arrow-right-on-rectangle] h-5 w-5"></span>
+                </button>
+            </form>
+        </nav>
+    </header>
+}
+
+@RenderBody()
+
+<footer class="flex justify-end p-1">
+    <a href="https://github.com/Bladesheng/drakthul-jelita-2" target="_blank">
+        <img src="~/github-mark-white.svg" class="h-5" alt="github-mark"/>
+    </a>
 </footer>
 
-<script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", false)
+
 </body>
 </html>

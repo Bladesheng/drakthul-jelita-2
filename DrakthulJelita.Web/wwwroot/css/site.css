@@ -1,29 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+    --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
 @plugin "daisyui" {
     themes: dark --default;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @plugin "@iconify/tailwind4";
-
-
-html {
-    font-size: 14px;
-}
-
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
-
-
-html {
-    position: relative;
-    min-height: 100%;
-}
-
-body {
-    margin-bottom: 60px;
-}
-
