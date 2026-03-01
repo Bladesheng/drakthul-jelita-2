@@ -53,6 +53,19 @@ public class ScreenshotsController(
         });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Search(
+        [FromQuery] string wowName,
+        [FromQuery] int wowClassId
+    )
+    {
+        var screenshots = await context.Screenshots
+            .Where(s => s.WowName == wowName && s.WowClassId == wowClassId)
+            .ToListAsync();
+
+        return Ok(screenshots);
+    }
+
     public async Task<IActionResult> Create()
     {
         var wowClasses = await GetWowClassesAsync();
