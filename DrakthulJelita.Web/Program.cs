@@ -1,3 +1,4 @@
+using Amazon.S3;
 using DrakthulJelita.Web.Configuration;
 using DrakthulJelita.Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -39,6 +40,21 @@ builder.Services
     .Bind(builder.Configuration.GetSection(CdnOptions.SectionName))
     .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "Cdn:BaseUrl must be set")
     .ValidateOnStart();
+
+var s3Config = builder.Configuration.GetSection("R2");
+
+builder.Services
+    .Configure<S3Options>(s3Config);
+
+builder.Services
+    .AddSingleton<IAmazonS3>(new AmazonS3Client(
+        s3Config["AccessKeyId"],
+        s3Config["SecretAccessKey"],
+        new AmazonS3Config
+        {
+            ServiceURL = s3Config["Endpoint"]
+        }
+    ));
 
 var app = builder.Build();
 

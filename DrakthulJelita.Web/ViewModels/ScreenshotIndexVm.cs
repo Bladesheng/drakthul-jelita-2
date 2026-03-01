@@ -5,13 +5,6 @@ public sealed class ScreenshotIndexVm
     public required IReadOnlyList<WowClassVm> WowClasses { get; init; }
     public required IReadOnlyDictionary<int, IReadOnlyList<ScreenshotVm>> Screenshots { get; init; }
 
-    public sealed class WowClassVm
-    {
-        public int Id { get; init; }
-        public required string Name { get; init; }
-        public required string Color { get; init; }
-    }
-
     public sealed class ScreenshotVm
     {
         public int Id { get; init; }

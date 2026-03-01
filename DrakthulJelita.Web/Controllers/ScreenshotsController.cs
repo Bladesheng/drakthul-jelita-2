@@ -1,13 +1,22 @@
+using Amazon.S3;
+using Amazon.S3.Model;
+using DrakthulJelita.Web.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DrakthulJelita.Web.Data;
 using DrakthulJelita.Web.Models;
 using DrakthulJelita.Web.ViewModels;
+using ImageMagick;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 
 namespace DrakthulJelita.Web.Controllers;
 
-public class ScreenshotsController(AppDbContext context) : Controller
+public class ScreenshotsController(
+    AppDbContext context,
+    IAmazonS3 s3,
+    IOptions<S3Options> s3Options
+) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -35,16 +44,7 @@ public class ScreenshotsController(AppDbContext context) : Controller
                 IReadOnlyList<ScreenshotIndexVm.ScreenshotVm> (g) => g.ToList()
             );
 
-        var wowClasses = await context.WowClasses
-            .AsNoTracking()
-            .Select(c => new ScreenshotIndexVm.WowClassVm
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Color = c.Color
-            })
-            .ToListAsync();
-
+        var wowClasses = await GetWowClassesAsync();
 
         return View(new ScreenshotIndexVm
         {
@@ -53,42 +53,107 @@ public class ScreenshotsController(AppDbContext context) : Controller
         });
     }
 
-    // GET: Screenshots/Details/5
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Create()
     {
-        if (id == null) return NotFound();
+        var wowClasses = await GetWowClassesAsync();
 
-        var screenshot = await context.Screenshots
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (screenshot == null) return NotFound();
-
-        return View(screenshot);
+        return View(new ScreenshotCreateVm
+        {
+            WowClasses = wowClasses
+        });
     }
 
-    // GET: Screenshots/Create
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    // POST: Screenshots/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create(
-        [Bind("Id,Path,MimeType,Size,WowName,CreatedAt,WowClassId,Width,Height")]
-        Screenshot screenshot)
+        ScreenshotCreateVm vm
+    )
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            context.Add(screenshot);
-            await context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            vm.WowClasses = await GetWowClassesAsync();
+            return View(vm);
         }
 
-        return View(screenshot);
+        var input = vm.Input;
+
+        var isValidClass =
+            await context.WowClasses.AnyAsync(wowClass => wowClass.Id == input.WowClassId);
+        if (!isValidClass)
+            return await Fail(nameof(vm.Input.WowClassId), "Invalid class value.");
+
+
+        if (input.FileUpload.Length > 1 * 1024 * 1024)
+            return await Fail(nameof(vm.Input.FileUpload), "File must be 1MB or smaller.");
+
+
+        var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp", "image/avif" };
+        if (!allowedTypes.Contains(input.FileUpload.ContentType))
+            return await Fail(nameof(vm.Input.FileUpload), "File must be an image.");
+
+
+        var exists = await context.Screenshots.AnyAsync(screenshot =>
+            screenshot.WowName == input.WowName && screenshot.WowClassId == input.WowClassId
+        );
+        if (exists)
+            return await Fail(nameof(vm.Input.WowName),
+                "Screenshot with that name and class already exists."
+            );
+
+
+        using var magickImage = new MagickImage();
+        await magickImage.ReadAsync(input.FileUpload.OpenReadStream());
+        magickImage.Format = MagickFormat.Avif;
+        /*
+         * AVIF 90 is as close as it gets to the original quality.
+         * Webp 100 has similar size, and sometimes similar quality too, but other times AVIF just
+         * looks better.
+         */
+        magickImage.Quality = 90;
+
+        using var memoryStream = new MemoryStream();
+        await magickImage.WriteAsync(memoryStream);
+        memoryStream.Position = 0;
+
+        var size = (int)memoryStream.Length;
+        var width = (int)magickImage.Width;
+        var height = (int)magickImage.Height;
+
+        var key = $"{Guid.NewGuid()}.avif";
+
+        await s3.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = s3Options.Value.Bucket,
+            Key = key,
+            InputStream = memoryStream,
+            ContentType = "image/avif",
+            // R2 doesn't support chunked streaming that AWS SDK uses by default.
+            DisablePayloadSigning = true
+        });
+
+        var screenshot = new Screenshot
+        {
+            Path = key,
+            MimeType = "image/avif",
+            Size = size,
+            WowName = input.WowName,
+            WowClassId = input.WowClassId,
+            Width = width,
+            Height = height
+        };
+        context.Add(screenshot);
+        await context.SaveChangesAsync();
+
+        TempData["Status"] = "screenshot-created";
+        return RedirectToAction(nameof(Create));
+
+        async Task<IActionResult> Fail(string key, string message)
+        {
+            ModelState.AddModelError($"Input.{key}", message);
+            vm.WowClasses = await GetWowClassesAsync();
+            return View(vm);
+        }
     }
 
     // GET: Screenshots/Edit/5
@@ -161,5 +226,18 @@ public class ScreenshotsController(AppDbContext context) : Controller
     private bool ScreenshotExists(int id)
     {
         return context.Screenshots.Any(e => e.Id == id);
+    }
+
+    private async Task<IReadOnlyList<WowClassVm>> GetWowClassesAsync()
+    {
+        return await context.WowClasses
+            .AsNoTracking()
+            .Select(c => new WowClassVm
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Color = c.Color
+            })
+            .ToListAsync();
     }
 }
