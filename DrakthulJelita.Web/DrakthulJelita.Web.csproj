@@ -6,6 +6,11 @@
         <UserSecretsId>9c82f166-076e-4fc4-8ea8-6e1aa1ff4c4c</UserSecretsId>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+        <SelfContained>false</SelfContained>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="AWSSDK.S3" Version="4.0.18.7"/>
         <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.10.3"/>
