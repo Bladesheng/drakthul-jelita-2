@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DrakthulJelita.Web.Data;
 
-public partial class AppDbContext : DbContext
+public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
