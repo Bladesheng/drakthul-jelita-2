@@ -71,6 +71,7 @@
 			<form
 				method="POST"
 				asp-action="Delete"
+				asp-route-id="@Model.Display.Id"
 				id="deleteScreenshot"
 			>
 				@Html.AntiForgeryToken()

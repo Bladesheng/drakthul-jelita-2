@@ -186,6 +186,7 @@ public class ScreenshotsController(
             },
             Display = new ScreenshotEditVm.DisplayVm
             {
+                Id = screenshot.Id,
                 Path = screenshot.Path,
                 Width = screenshot.Width,
                 Height = screenshot.Height
@@ -208,6 +209,7 @@ public class ScreenshotsController(
             vm.WowClasses = await GetWowClassesAsync();
             vm.Display = new ScreenshotEditVm.DisplayVm
             {
+                Id = screenshot.Id,
                 Path = screenshot.Path,
                 Width = screenshot.Width,
                 Height = screenshot.Height
@@ -222,34 +224,16 @@ public class ScreenshotsController(
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: Screenshots/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null) return NotFound();
-
-        var screenshot = await context.Screenshots
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (screenshot == null) return NotFound();
-
-        return View(screenshot);
-    }
-
-    // POST: Screenshots/Delete/5
     [HttpPost]
-    [ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         var screenshot = await context.Screenshots.FindAsync(id);
-        if (screenshot != null) context.Screenshots.Remove(screenshot);
+        if (screenshot == null) return NotFound();
 
+        context.Screenshots.Remove(screenshot);
         await context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
-    }
-
-    private bool ScreenshotExists(int id)
-    {
-        return context.Screenshots.Any(e => e.Id == id);
     }
 
     private async Task<IReadOnlyList<WowClassVm>> GetWowClassesAsync()

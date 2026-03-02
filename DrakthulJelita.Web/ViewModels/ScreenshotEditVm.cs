@@ -25,6 +25,7 @@ public sealed class ScreenshotEditVm
 
     public sealed class DisplayVm
     {
+        public required int Id { get; init; }
         public required string Path { get; init; }
         public required int Width { get; init; }
         public required int Height { get; init; }
