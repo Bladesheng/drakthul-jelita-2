@@ -41,7 +41,7 @@ builder.Services
     .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "Cdn:BaseUrl must be set")
     .ValidateOnStart();
 
-var s3Config = builder.Configuration.GetSection("R2");
+var s3Config = builder.Configuration.GetSection("S3");
 
 builder.Services
     .Configure<S3Options>(s3Config);
