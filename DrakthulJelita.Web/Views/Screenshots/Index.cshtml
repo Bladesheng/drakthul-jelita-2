@@ -6,6 +6,20 @@
 
 
 <main class="m-4 grow">
+    @if (TempData["Status"] as string == "screenshot-updated")
+    {
+        <div class="mb-4">
+            <partial name="_alertSuccess" model=@("Screenshot updated successfully")/>
+        </div>
+    }
+
+    @if (TempData["Status"] as string == "screenshot-deleted")
+    {
+        <div class="mb-4">
+            <partial name="_alertSuccess" model=@("Screenshot deleted successfully")/>
+        </div>
+    }
+
     <div class="flex flex-col gap-6">
         <div class="flex justify-between items-center">
             <label class="input">
@@ -14,21 +28,21 @@
             </label>
 
             <div>
-        <span>
-            @Model.Screenshots.Values.Sum(screenshots => screenshots.Count) screenshots
-        </span>
+                <span>
+                    @Model.Screenshots.Values.Sum(screenshots => screenshots.Count) screenshots
+                </span>
 
                 (
                 <span class="inline-flex gap-2">
-            @foreach (var (_, classScreenshots) in Model.Screenshots.OrderByDescending(e => e.Value.Count))
+                    @foreach (var (_, classScreenshots) in Model.Screenshots.OrderByDescending(e => e.Value.Count))
                     {
                         var classColor = classScreenshots.FirstOrDefault()?.WowClassColor;
 
                         <span style="color: @classColor">
-                    @classScreenshots.Count
-                </span>
+                            @classScreenshots.Count
+                        </span>
                     }
-            </span>
+                </span>
                 )
             </div>
         </div>

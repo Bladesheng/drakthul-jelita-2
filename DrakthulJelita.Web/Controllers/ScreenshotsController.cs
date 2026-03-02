@@ -219,8 +219,9 @@ public class ScreenshotsController(
 
         screenshot.WowName = vm.Input.WowName;
         screenshot.WowClassId = vm.Input.WowClassId;
-
         await context.SaveChangesAsync();
+
+        TempData["Status"] = "screenshot-updated";
         return RedirectToAction(nameof(Index));
     }
 
@@ -233,6 +234,8 @@ public class ScreenshotsController(
 
         context.Screenshots.Remove(screenshot);
         await context.SaveChangesAsync();
+
+        TempData["Status"] = "screenshot-deleted";
         return RedirectToAction(nameof(Index));
     }
 
