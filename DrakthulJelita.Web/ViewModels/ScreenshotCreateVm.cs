@@ -5,12 +5,12 @@ namespace DrakthulJelita.Web.ViewModels;
 
 public sealed class ScreenshotCreateVm
 {
-    public ScreenshotCreateInputVm Input { get; init; } = null!;
+    public InputVm Input { get; init; } = null!;
 
     [ValidateNever] public required IReadOnlyList<WowClassVm> WowClasses { get; set; }
 }
 
-public sealed class ScreenshotCreateInputVm
+public sealed class InputVm
 {
     [Required]
     [StringLength(16, MinimumLength = 2)]

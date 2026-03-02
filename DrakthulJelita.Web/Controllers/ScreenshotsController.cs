@@ -169,46 +169,57 @@ public class ScreenshotsController(
         }
     }
 
-    // GET: Screenshots/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
 
         var screenshot = await context.Screenshots.FindAsync(id);
         if (screenshot == null) return NotFound();
-        return View(screenshot);
+
+        return View(new ScreenshotEditVm
+        {
+            WowClasses = await GetWowClassesAsync(),
+            Input = new ScreenshotEditVm.InputVm
+            {
+                WowName = screenshot.WowName,
+                WowClassId = screenshot.WowClassId
+            },
+            Display = new ScreenshotEditVm.DisplayVm
+            {
+                Path = screenshot.Path,
+                Width = screenshot.Width,
+                Height = screenshot.Height
+            }
+        });
     }
 
-    // POST: Screenshots/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id,
-        [Bind("Id,Path,MimeType,Size,WowName,CreatedAt,WowClassId,Width,Height")]
-        Screenshot screenshot)
+    public async Task<IActionResult> Edit(
+        int id,
+        ScreenshotEditVm vm
+    )
     {
-        if (id != screenshot.Id) return NotFound();
+        var screenshot = await context.Screenshots.FindAsync(id);
+        if (screenshot == null) return NotFound();
 
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            try
+            vm.WowClasses = await GetWowClassesAsync();
+            vm.Display = new ScreenshotEditVm.DisplayVm
             {
-                context.Update(screenshot);
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ScreenshotExists(screenshot.Id))
-                    return NotFound();
-                else
-                    throw;
-            }
-
-            return RedirectToAction(nameof(Index));
+                Path = screenshot.Path,
+                Width = screenshot.Width,
+                Height = screenshot.Height
+            };
+            return View(vm);
         }
 
-        return View(screenshot);
+        screenshot.WowName = vm.Input.WowName;
+        screenshot.WowClassId = vm.Input.WowClassId;
+
+        await context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Screenshots/Delete/5

@@ -1,65 +1,81 @@
-@model DrakthulJelita.Web.Models.Screenshot
+@model DrakthulJelita.Web.ViewModels.ScreenshotEditVm
 
 @{
-    ViewData["Title"] = "Edit";
+	ViewData["Title"] = "Edit";
+
+	var cdnBaseUrl = Cdn.Value.BaseUrl.TrimEnd('/');
 }
 
-<h1>Edit</h1>
+@* <div asp-validation-summary="All" class="text-red-500"></div> *@
 
-<h4>Screenshot</h4>
-<hr/>
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id"/>
-            <div class="form-group">
-                <label asp-for="Path" class="control-label"></label>
-                <input asp-for="Path" class="form-control"/>
-                <span asp-validation-for="Path" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MimeType" class="control-label"></label>
-                <input asp-for="MimeType" class="form-control"/>
-                <span asp-validation-for="MimeType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Size" class="control-label"></label>
-                <input asp-for="Size" class="form-control"/>
-                <span asp-validation-for="Size" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="WowName" class="control-label"></label>
-                <input asp-for="WowName" class="form-control"/>
-                <span asp-validation-for="WowName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control"/>
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="WowClassId" class="control-label"></label>
-                <input asp-for="WowClassId" class="form-control"/>
-                <span asp-validation-for="WowClassId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Width" class="control-label"></label>
-                <input asp-for="Width" class="form-control"/>
-                <span asp-validation-for="Width" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Height" class="control-label"></label>
-                <input asp-for="Height" class="form-control"/>
-                <span asp-validation-for="Height" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary"/>
-            </div>
-        </form>
-    </div>
-</div>
+<main class="relative flex grow flex-col items-center justify-center gap-8 md:flex-row">
+	<img
+		src="@cdnBaseUrl/@Model.Display.Path"
+		width="@Model.Display.Width"
+		height="@Model.Display.Height"
+		alt="@Model.Input.WowName"
+		class="w-64 rounded shadow"
+	/>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+	<div class="card bg-base-200 shadow">
+		<div class="card-body">
+			<h1 class="card-title">Edit screenshot</h1>
+
+			<form
+				method="POST"
+				asp-action="Edit"
+				class="flex flex-col gap-4"
+			>
+				@Html.AntiForgeryToken()
+
+				<label class="input">
+					<span class="label">Name</span>
+					<input
+						type="text"
+						asp-for="Input.WowName"
+						required
+						minlength="2"/>
+				</label>
+
+				<x-validation-error field="wowName"/>
+
+				<div class="flex flex-col gap-1.5">
+					@foreach (var wowClass in Model.WowClasses)
+					{
+						<div class="flex items-center gap-1" style="color: @wowClass.Color">
+							<input
+								type="radio"
+								asp-for="Input.WowClassId"
+								value="@wowClass.Id"
+								required
+								id="wowClass-@wowClass.Id"
+								class="radio"/>
+
+							<label for="wowClass-@wowClass.Id" class="capitalize">
+								@wowClass.Name
+							</label>
+						</div>
+					}
+
+					<x-validation-error field="wowClassId"/>
+				</div>
+
+				<div class="flex justify-between gap-2">
+					<button type="submit" class="btn btn-primary flex-1">Save</button>
+					<button type="submit" class="btn btn-error flex-1" form="deleteScreenshot">
+						Delete
+					</button>
+				</div>
+			</form>
+
+			<form
+				method="POST"
+				asp-action="Delete"
+				id="deleteScreenshot"
+			>
+				@Html.AntiForgeryToken()
+			</form>
+		</div>
+	</div>
+</main>
+
