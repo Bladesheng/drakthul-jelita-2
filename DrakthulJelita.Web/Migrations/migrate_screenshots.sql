@@ -4,7 +4,7 @@
 -- ```
 
 ATTACH
-DATABASE 'old.sqlite' AS old;
+    DATABASE 'old.sqlite' AS old;
 
 INSERT INTO main.Screenshots
 (Id, Path, MimeType, Size, WowName, CreatedAt, WowClassId, Width, Height)
@@ -12,7 +12,7 @@ SELECT s.id,
        s.path,
        s.mime_type,
        s.size,
-       s.wow_name,
+       lower(trim(s.wow_name)),
        s.created_at,
        s.wow_class_id,
        s.width,
@@ -27,4 +27,4 @@ SELECT COUNT(*)
 FROM main.Screenshots;
 
 DETACH
-DATABASE old;
+    DATABASE old;
