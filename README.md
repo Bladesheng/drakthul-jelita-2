@@ -9,3 +9,8 @@ dotnet user-secrets set "S3:SecretAccessKey" "xxx"
 dotnet user-secrets set "S3:Bucket" "xxx"
 dotnet user-secrets set "S3:Endpoint" "xxx"
 ```
+
+Set up admin password:
+```bash
+dotnet user-secrets set "AdminPassword" "xxx"
+```
